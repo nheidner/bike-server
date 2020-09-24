@@ -112,42 +112,46 @@ export const resolvers: IResolvers = {
             { input }: LogInInput,
             { db, req, res }: { db: Database; req: Request; res: Response }
         ): Promise<Viewer> => {
-            const token = crypto.randomBytes(16).toString('hex');
+            try {
+                const token = crypto.randomBytes(16).toString('hex');
 
-            let user: User | undefined;
-            if (input && input.service) {
-                switch (input.service) {
-                    case 'EMAIL':
-                        user = await logInViaEmail(db, input, token, res);
-                        break;
-                    // case 'FACEBOOK':
-                    // case 'GOOGLE':
-                    // case 'APPLE':
-                    default:
+                let user: User | undefined;
+                if (input && input.service) {
+                    switch (input.service) {
+                        case 'EMAIL':
+                            user = await logInViaEmail(db, input, token, res);
+                            break;
+                        // case 'FACEBOOK':
+                        // case 'GOOGLE':
+                        // case 'APPLE':
+                        default:
+                            user = undefined;
+                            break;
+                    }
+                } else {
+                    const viewerCookieValue = req.signedCookies.viewer;
+                    if (!viewerCookieValue) {
                         user = undefined;
-                        break;
-                }
-            } else {
-                const viewerCookieValue = req.signedCookies.viewer;
-                if (!viewerCookieValue) {
-                    user = undefined;
+                    }
+
+                    user = await logInViaCookie(db, token, req, res);
                 }
 
-                user = await logInViaCookie(db, token, req, res);
-            }
+                if (!user) {
+                    return { didRequest: true };
+                }
 
-            if (!user) {
-                return { didRequest: true };
+                return {
+                    _id: user._id?.toString(),
+                    token: user.token,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    didRequest: true,
+                    email: user.email,
+                };
+            } catch (error) {
+                throw new Error(`failed to query user: ${error}`);
             }
-
-            return {
-                _id: user._id?.toString(),
-                token: user.token,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                didRequest: true,
-                email: user.email,
-            };
         },
         logOutUser: (
             _root: undefined,
@@ -155,12 +159,11 @@ export const resolvers: IResolvers = {
             { req, res }: { req: Request; res: Response }
         ): Viewer => {
             try {
-                console.log(req.signedCookies.viewer);
+                //const token = req.get('X-CSRF-TOKEN');
                 res.clearCookie('viewer', { ...cookieOptions });
                 return { didRequest: true };
             } catch (error) {
-                process.env.NODE_ENV === 'development' && console.log(error);
-                throw new Error('failed to log out');
+                throw new Error(`failed to query user: ${error}`);
             }
         },
         registerUser: async (
@@ -168,22 +171,26 @@ export const resolvers: IResolvers = {
             { input }: RegisterUserInput,
             { db }: { db: Database }
         ): Promise<User | null> => {
-            const hashedPassword = await bcrypt.hash(input.password, 10);
+            try {
+                const hashedPassword = await bcrypt.hash(input.password, 10);
 
-            const findOneResult = await db.users.findOne({
-                email: input.email,
-            });
-            if (findOneResult !== null) {
-                throw new Error('email aldready exists');
+                const findOneResult = await db.users.findOne({
+                    email: input.email,
+                });
+                if (findOneResult !== null) {
+                    throw new Error('email aldready exists');
+                }
+
+                const insertResult = await db.users.insertOne({
+                    firstName: input.firstName,
+                    lastName: input.lastName,
+                    email: input.email,
+                    password: hashedPassword,
+                });
+                return insertResult.ops[0];
+            } catch (error) {
+                throw new Error(`failed to query user: ${error}`);
             }
-
-            const insertResult = await db.users.insertOne({
-                firstName: input.firstName,
-                lastName: input.lastName,
-                email: input.email,
-                password: hashedPassword,
-            });
-            return insertResult.ops[0];
         },
     },
 };
