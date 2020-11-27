@@ -78,5 +78,6 @@ export const typeDefs = gql`
     type Query {
         services(limit: Int!, offset: Int!): Services
         user: [User!]!
+        service(id: ID): Service!
     }
 `;

@@ -3,7 +3,6 @@ import { ApolloServer } from 'apollo-server-express';
 import { connectDatabase } from './db';
 import { resolvers, typeDefs } from './graphql';
 import cookieParser from 'cookie-parser';
-import path from 'path';
 
 import dotenv from 'dotenv';
 dotenv.config();

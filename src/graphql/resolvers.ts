@@ -1,10 +1,10 @@
 import { Database, User, Viewer, Service } from '../lib/types';
-import { IResolvers } from 'apollo-server-express';
+import { ApolloError, IResolvers } from 'apollo-server-express';
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import { ObjectID } from 'mongodb';
-import { ServicesData } from './types';
+import { ObjectId, ObjectID } from 'mongodb';
+import { ServicesData, ServiceArgs } from './types';
 
 interface LogInInput {
     input: {
@@ -114,6 +114,28 @@ export const resolvers: IResolvers = {
                 return data;
             } catch (error) {
                 throw new Error(`failed to query services: ${error}`);
+            }
+        },
+        service: async (
+            _root: undefined,
+            { id }: ServiceArgs,
+            { db }: { db: Database }
+        ): Promise<Service> => {
+            try {
+                const service = await db.services.findOne({
+                    _id: new ObjectId(id),
+                });
+
+                if (!service) {
+                    throw new ApolloError(
+                        'service cannot be found',
+                        'DB_ERROR'
+                    );
+                }
+
+                return service;
+            } catch (error) {
+                throw new ApolloError(error, 'INTERNAL_ERROR');
             }
         },
     },
