@@ -20,6 +20,11 @@ export const typeDefs = gql`
         price: Int
     }
 
+    type Services {
+        total: Int!
+        result: [Service!]!
+    }
+
     type UsedService {
         id: ID
         date: String
@@ -71,6 +76,7 @@ export const typeDefs = gql`
     }
 
     type Query {
+        services(limit: Int!, offset: Int!): Services
         user: [User!]!
     }
 `;

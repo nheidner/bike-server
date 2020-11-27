@@ -3,6 +3,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { connectDatabase } from './db';
 import { resolvers, typeDefs } from './graphql';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -14,6 +15,7 @@ const app = express();
 
 const mount = async (app: express.Application) => {
     app.use(cookieParser(process.env.SECRET));
+    app.use(express.static('public'));
 
     const db = await connectDatabase();
 

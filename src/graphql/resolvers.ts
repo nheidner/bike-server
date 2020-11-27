@@ -1,9 +1,10 @@
-import { Database, User, Viewer } from '../lib/types';
+import { Database, User, Viewer, Service } from '../lib/types';
 import { IResolvers } from 'apollo-server-express';
-import { Request, Response, response } from 'express';
+import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
+import { ServicesData } from './types';
 
 interface LogInInput {
     input: {
@@ -92,8 +93,37 @@ const logInViaEmail = async (
 };
 
 export const resolvers: IResolvers = {
-    Query: {},
+    Query: {
+        services: async (
+            _root: undefined,
+            { limit, offset }: { limit: number; offset: number },
+            { db }: { db: Database }
+        ): Promise<ServicesData> => {
+            try {
+                const data: ServicesData = {
+                    total: 0,
+                    result: [],
+                };
+                let cursor = db.services.find({});
+                cursor = cursor.skip(offset);
+                cursor = cursor.limit(limit);
 
+                data.total = await cursor.count();
+                data.result = await cursor.toArray();
+
+                return data;
+            } catch (error) {
+                throw new Error(`failed to query services: ${error}`);
+            }
+        },
+    },
+
+    // map ObjectID from MongoDB database to string when returned (to client)
+    Service: {
+        id: (service: Service): string | undefined => {
+            return service._id ? service._id.toString() : undefined;
+        },
+    },
     User: {
         id: (user: User): string | undefined => {
             return user._id?.toString();
@@ -156,7 +186,7 @@ export const resolvers: IResolvers = {
         logOutUser: (
             _root: undefined,
             _args: undefined,
-            { req, res }: { req: Request; res: Response }
+            { res }: { req: Request; res: Response }
         ): Viewer => {
             try {
                 //const token = req.get('X-CSRF-TOKEN');

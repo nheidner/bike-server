@@ -18,6 +18,15 @@ export interface Viewer {
     email?: string;
 }
 
+export interface Service {
+    _id: ObjectId;
+    name: string;
+    description: string;
+    image: string;
+    price: number;
+}
+
 export interface Database {
+    services: Collection<Service>;
     users: Collection<User>;
 }

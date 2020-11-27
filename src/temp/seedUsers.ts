@@ -32,6 +32,7 @@ const seed = async () => {
     } catch (error) {
         console.log('There is an error:', error);
     }
+    process.exit(0);
 };
 
 seed();

@@ -6,7 +6,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "nodemon src/index.ts",
-        "seed": "ts-node src/temp/seed.ts"
+        "seedUsers": "ts-node src/temp/seedUsers.ts",
+        "seedServices": "ts-node src/temp/seedServices.ts"
     },
     "author": "",
     "license": "ISC",
