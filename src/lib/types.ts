@@ -10,8 +10,6 @@ export interface User {
     hasWallet?: ObjectId | false;
 }
 
-export interface Date {}
-
 export interface Booking {
     _id?: ObjectId;
     date?: string;
