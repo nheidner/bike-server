@@ -1,23 +1,10 @@
-import { Database, User, Viewer, Service } from '../lib/types';
-import { ApolloError, IResolvers } from 'apollo-server-express';
+import { IResolvers } from 'apollo-server-express';
+import { Database, User, Viewer } from '../../../lib/types';
+import { ObjectId } from 'mongodb';
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import { LogInInput } from './types';
 import crypto from 'crypto';
-import { ObjectId, ObjectID } from 'mongodb';
-import { ServicesData, ServiceArgs } from './types';
-
-interface LogInInput {
-    input: {
-        email?: string;
-        password?: string;
-        service?: string;
-        code?: string;
-    };
-}
-
-interface RegisterUserInput {
-    input: User;
-}
+import bcrypt from 'bcrypt';
 
 const cookieOptions = {
     httpOnly: true,
@@ -37,7 +24,7 @@ const logInViaCookie = async (
     res: Response
 ): Promise<User | undefined> => {
     const resValue = await db.users.findOneAndUpdate(
-        { _id: new ObjectID(req.signedCookies.viewer) },
+        { _id: new ObjectId(req.signedCookies.viewer) },
         { $set: { token } },
         { returnOriginal: false }
     );
@@ -92,72 +79,12 @@ const logInViaEmail = async (
     return user;
 };
 
-export const resolvers: IResolvers = {
-    Query: {
-        services: async (
-            _root: undefined,
-            { limit, offset }: { limit: number; offset: number },
-            { db }: { db: Database }
-        ): Promise<ServicesData> => {
-            try {
-                const data: ServicesData = {
-                    total: 0,
-                    result: [],
-                };
-                let cursor = db.services.find({});
-                cursor = cursor.skip(offset);
-                cursor = cursor.limit(limit);
-
-                data.total = await cursor.count();
-                data.result = await cursor.toArray();
-
-                return data;
-            } catch (error) {
-                throw new Error(`failed to query services: ${error}`);
-            }
-        },
-        service: async (
-            _root: undefined,
-            { id }: ServiceArgs,
-            { db }: { db: Database }
-        ): Promise<Service> => {
-            try {
-                const service = await db.services.findOne({
-                    _id: new ObjectId(id),
-                });
-
-                if (!service) {
-                    throw new ApolloError(
-                        'service cannot be found',
-                        'DB_ERROR'
-                    );
-                }
-
-                return service;
-            } catch (error) {
-                throw new ApolloError(error, 'INTERNAL_ERROR');
-            }
-        },
-    },
-
-    // map ObjectID from MongoDB database to string when returned (to client)
-    Service: {
-        id: (service: Service): string | undefined => {
-            return service._id ? service._id.toString() : undefined;
-        },
-    },
-    User: {
+export const viewerResolver: IResolvers = {
+    Viewer: {
         id: (user: User): string | undefined => {
             return user._id?.toString();
         },
     },
-
-    Viewer: {
-        id: (viewer: Viewer): string | undefined => {
-            return viewer._id;
-        },
-    },
-
     Mutation: {
         logInUser: async (
             _root: undefined,
@@ -192,7 +119,6 @@ export const resolvers: IResolvers = {
                 if (!user) {
                     return { didRequest: true };
                 }
-
                 return {
                     _id: user._id?.toString(),
                     token: user.token,
@@ -213,33 +139,8 @@ export const resolvers: IResolvers = {
             try {
                 //const token = req.get('X-CSRF-TOKEN');
                 res.clearCookie('viewer', { ...cookieOptions });
+                res.clearCookie('booking'), { ...cookieOptions };
                 return { didRequest: true };
-            } catch (error) {
-                throw new Error(`failed to query user: ${error}`);
-            }
-        },
-        registerUser: async (
-            _root: undefined,
-            { input }: RegisterUserInput,
-            { db }: { db: Database }
-        ): Promise<User | null> => {
-            try {
-                const hashedPassword = await bcrypt.hash(input.password, 10);
-
-                const findOneResult = await db.users.findOne({
-                    email: input.email,
-                });
-                if (findOneResult !== null) {
-                    throw new Error('email aldready exists');
-                }
-
-                const insertResult = await db.users.insertOne({
-                    firstName: input.firstName,
-                    lastName: input.lastName,
-                    email: input.email,
-                    password: hashedPassword,
-                });
-                return insertResult.ops[0];
             } catch (error) {
                 throw new Error(`failed to query user: ${error}`);
             }

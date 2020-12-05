@@ -7,8 +7,22 @@ export interface User {
     email: string;
     password: string;
     token?: string;
+    hasWallet?: ObjectId | false;
 }
 
+export interface Date {}
+
+export interface Booking {
+    _id?: ObjectId;
+    date?: string;
+    time?: string;
+    services?: ObjectId[];
+    // address: Address
+    userId?: ObjectId;
+    isMade?: boolean;
+}
+
+// _id of type string and not ObjectId because _id can also be returned from third-party auth provider (Google, Facebook...)
 export interface Viewer {
     _id?: string;
     token?: string;
@@ -29,4 +43,5 @@ export interface Service {
 export interface Database {
     services: Collection<Service>;
     users: Collection<User>;
+    bookings: Collection<Booking>;
 }
