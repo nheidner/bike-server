@@ -1,16 +1,16 @@
 import { gql } from 'apollo-server-express';
 
 export const typeDefs = gql`
-    # type Address {
-    #     firstName: String
-    #     lastName: String
-    #     street: String
-    #     streetNumber: String
-    #     zip: Int
-    #     city: String
-    #     country: String
-    #     description: String
-    # }
+    type Address {
+        firstName: String
+        lastName: String
+        street: String
+        streetNumber: String
+        zip: Int
+        city: String
+        country: String
+        # description: String
+    }
 
     type Service {
         id: ID
@@ -83,6 +83,16 @@ export const typeDefs = gql`
         isMade: Boolean
     }
 
+    input CheckAddressInput {
+        firstName: String
+        lastName: String
+        street: String
+        streetNumber: String
+        zip: Int
+        city: String
+        country: String
+    }
+
     type Mutation {
         logOutUser: Viewer
         logInUser(input: LogInInput): Viewer
@@ -95,5 +105,6 @@ export const typeDefs = gql`
         user: [User!]!
         service(id: ID!): Service!
         booking(serviceId: ID): Booking!
+        checkAddress(input: CheckAddressInput!): Address
     }
 `;

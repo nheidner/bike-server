@@ -1,5 +1,16 @@
 import { Collection, ObjectId } from 'mongodb';
 
+export interface Address {
+    firstName: string;
+    lastName: string;
+    street: string;
+    streetNumber: string;
+    zip: number;
+    city: string;
+    country: string;
+    // description: string;
+}
+
 export interface User {
     _id?: ObjectId;
     firstName: string;
