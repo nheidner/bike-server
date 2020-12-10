@@ -1,15 +1,15 @@
 import { gql } from 'apollo-server-express';
 
 export const typeDefs = gql`
+    scalar Date
+
     type Address {
-        firstName: String
-        lastName: String
-        street: String
-        streetNumber: String
-        zip: Int
-        city: String
-        country: String
-        # description: String
+        fullName: String!
+        firstLine: String!
+        secondLine: String
+        postalCode: String!
+        city: String!
+        utcZone: Int
     }
 
     type Service {
@@ -25,12 +25,16 @@ export const typeDefs = gql`
         result: [Service!]!
     }
 
-    type Booking {
+    type TimeFrame {
+        from: Date
+        to: Date
+    }
+
+    type NewBooking {
         id: ID!
-        date: String
-        time: String
+        date: TimeFrame
         services: [Service!]!
-        # address: Address
+        address: Address
         wallet: String
         userId: ID! # User.id
         isMade: Boolean!
@@ -75,36 +79,39 @@ export const typeDefs = gql`
         password: String!
     }
 
-    input UpdateBookingInput {
-        date: String
-        time: String
-        services: [ID]
-        wallet: String
-        isMade: Boolean
+    input UpdateNewBookingAddressInput {
+        # newBookingId: String!
+        fullName: String!
+        firstLine: String!
+        secondLine: String
+        postalCode: String!
+        city: String!
     }
 
-    input CheckAddressInput {
-        firstName: String
-        lastName: String
-        street: String
-        streetNumber: String
-        zip: Int
-        city: String
-        country: String
+    input UpdateNewBookingDateInput {
+        # newBookingId: String!
+        from: Date
+        to: Date
+    }
+
+    input NewBookingInput {
+        serviceId: String
     }
 
     type Mutation {
         logOutUser: Viewer
         logInUser(input: LogInInput): Viewer
         registerUser(input: RegisterUserInput): User!
-        updateBooking(input: UpdateBookingInput): Booking!
+        updateNewBookingAddress(
+            input: UpdateNewBookingAddressInput
+        ): NewBooking!
+        updateNewBookingDate(input: UpdateNewBookingDateInput): NewBooking!
     }
 
     type Query {
         services(limit: Int!, offset: Int!): Services!
         user: [User!]!
         service(id: ID!): Service!
-        booking(serviceId: ID): Booking!
-        checkAddress(input: CheckAddressInput!): Address
+        newBooking(input: NewBookingInput): NewBooking!
     }
 `;

@@ -7,7 +7,8 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "nodemon src/index.ts",
         "seedUsers": "ts-node src/temp/seedUsers.ts",
-        "seedServices": "ts-node src/temp/seedServices.ts"
+        "seedServices": "ts-node src/temp/seedServices.ts",
+        "seedAvailableCities": "ts-node src/temp/seedAvailableCities.ts"
     },
     "author": "",
     "license": "ISC",
@@ -18,10 +19,12 @@
         "cookie-parser": "^1.4.5",
         "express": "^4.17.1",
         "express-session": "^1.17.1",
+        "graphql": "^15.4.0",
         "lodash.merge": "^4.6.2",
         "mongodb": "^3.6.0",
         "passport": "^0.4.1",
-        "uuid": "^8.3.0"
+        "uuid": "^8.3.0",
+        "yup": "^0.32.5"
     },
     "devDependencies": {
         "@types/bcrypt": "^3.0.0",

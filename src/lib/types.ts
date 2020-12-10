@@ -1,14 +1,12 @@
 import { Collection, ObjectId } from 'mongodb';
 
 export interface Address {
-    firstName: string;
-    lastName: string;
-    street: string;
-    streetNumber: string;
-    zip: number;
+    fullName: string;
+    firstLine: string;
+    secondLine?: string;
+    postalCode: string;
     city: string;
-    country: string;
-    // description: string;
+    utcZone?: number;
 }
 
 export interface User {
@@ -19,14 +17,20 @@ export interface User {
     password: string;
     token?: string;
     hasWallet?: ObjectId | false;
+    addresses?: Address[];
 }
 
-export interface Booking {
+export interface TimeFrame {
+    from: Date;
+    to: Date;
+}
+
+export interface NewBooking {
     _id?: ObjectId;
-    date?: string;
+    date?: TimeFrame;
     time?: string;
     services?: ObjectId[];
-    // address: Address
+    address?: Address;
     userId?: ObjectId;
     isMade?: boolean;
 }
@@ -49,8 +53,20 @@ export interface Service {
     price: number;
 }
 
+export interface AvailableCity {
+    _id: ObjectId;
+    name: string;
+    utcZone: number;
+    postalCodes: number[];
+    // availableSince?:
+}
+
+export type Calendar = number[][][][];
+
 export interface Database {
     services: Collection<Service>;
     users: Collection<User>;
-    bookings: Collection<Booking>;
+    newBookings: Collection<NewBooking>;
+    availableCities: Collection<AvailableCity>;
+    calendar: Collection<Calendar>;
 }
